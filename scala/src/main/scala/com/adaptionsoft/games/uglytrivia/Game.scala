@@ -1,38 +1,82 @@
 package com.adaptionsoft.games.uglytrivia
 
 import scala.collection.mutable
+import scala.collection.mutable.ListBuffer
 
-class Game() {
-  val players = mutable.ListBuffer[String]()
-  val places = new Array[Int](6)
-  val purses = new Array[Int](6)
-  val inPenaltyBox = new Array[Boolean](6)
-  val popQuestions = mutable.ListBuffer[String]()
-  val scienceQuestions = mutable.ListBuffer[String]()
-  val sportsQuestions = mutable.ListBuffer[String]()
-  val rockQuestions = mutable.ListBuffer[String]()
+object Game{
+  val MaxNumberOfPlayers = 6
+  val MinNumberOfPlayers = 2
+  val MaxNumberOfCells = 12
+  val NumberOfQuestions = 50
+}
+
+case class Gold(var value: Int){
+  def += (v: Int) = this.value += v
+
+  override def toString: String = value.toString
+}
+
+class Player(val name: String) {
+  var place: Int = 0
+  var purse: Gold = Gold(0)
+  var inPenaltyBox: Boolean = false
+
+  override def toString: String = name
+}
+
+sealed trait Category
+case object Rock extends Category
+case object Pop extends Category
+case object Science extends Category
+case object Sports extends Category
+
+/**
+  * Problems :
+  *  x  - forbid to add player when game has started
+  *  x  - enforce between 2 and MaxNumberOfPlayer players
+  *  x - no magic number (6, 50, 2...)
+  *   - question category as enum
+  *  X- naming
+  *     - add => addPlayer
+  *   - safely access arrays
+  *  X - create player class
+  *   - extract business logic
+  *   - Map[Category, List[Question]]
+  */
+class Game(playerNames: Seq[String]) {
+  import Game._
+
+  val players = playerNames.zipWithIndex.map{case (name, index) => addPlayer(name, index)}
+  val inPenaltyBox = new Array[Boolean](MaxNumberOfPlayers)
+
   var currentPlayer = 0
+ val questions: Map[Category,mutable.ListBuffer[String]] = Map(
+   Pop -> mutable.ListBuffer[String](),
+   Sports -> mutable.ListBuffer[String](),
+    Science -> mutable.ListBuffer[String](),
+   Rock -> mutable.ListBuffer[String]()
+ )
+
   var isGettingOutOfPenaltyBox: Boolean = false
 
-  (0 until 50).foreach { i =>
-    popQuestions.append("Pop Question " + i)
-    scienceQuestions.append("Science Question " + i)
-    sportsQuestions.append("Sports Question " + i)
-    rockQuestions.append(createRockQuestion(i))
+  assert(playerNames.size <= MaxNumberOfPlayers, s"At max $MaxNumberOfPlayers players")
+  assert(playerNames.size >= MinNumberOfPlayers, s"At least $MinNumberOfPlayers players")
+
+  (0 until NumberOfQuestions).foreach { i =>
+    questions(Pop).append("Pop Question " + i)
+    questions(Science).append("Science Question " + i)
+    questions(Sports).append("Sports Question " + i)
+    questions(Rock).append(createRockQuestion(i))
   }
 
   def createRockQuestion(index: Int): String = "Rock Question " + index
 
-  def isPlayable: Boolean = howManyPlayers >= 2
+  def isPlayable: Boolean = howManyPlayers >= MinNumberOfPlayers
 
-  def add(playerName: String): Boolean = {
-    players.append(playerName)
-    places(howManyPlayers) = 0
-    purses(howManyPlayers) = 0
-    inPenaltyBox(howManyPlayers) = false
+  private def addPlayer(playerName: String, index: Int): Player = {
     println(playerName + " was added")
-    println("They are player number " + players.size)
-    true
+    println(s"They are player number ${index + 1}")
+    new Player(playerName)
   }
 
   def howManyPlayers: Int = players.size
@@ -40,43 +84,37 @@ class Game() {
   def roll(roll: Int): Unit = {
     println(players(currentPlayer) + " is the current player")
     println("They have rolled a " + roll)
-    if (inPenaltyBox(currentPlayer)) if (roll % 2 != 0) {
-      isGettingOutOfPenaltyBox = true
-      println(players(currentPlayer) + " is getting out of the penalty box")
-      movePlayerAndAskQuestion(roll)
-    } else {
-      println(players(currentPlayer) + " is not getting out of the penalty box")
-      isGettingOutOfPenaltyBox = false
-    } else
-      movePlayerAndAskQuestion(roll)
+    if (inPenaltyBox(currentPlayer))
+      if (roll % 2 != 0) {
+        isGettingOutOfPenaltyBox = true
+        println(players(currentPlayer) + " is getting out of the penalty box")
+        movePlayerAndAskQuestion(roll)
+      } else {
+        println(players(currentPlayer) + " is not getting out of the penalty box")
+        isGettingOutOfPenaltyBox = false
+      }
+    else
+        movePlayerAndAskQuestion(roll)
   }
 
   private def movePlayerAndAskQuestion(roll: Int): Unit = {
-    places(currentPlayer) = places(currentPlayer) + roll
-    if (places(currentPlayer) > 11) places(currentPlayer) = places(currentPlayer) - 12
-    println(players(currentPlayer) + "'s new location is " + places(currentPlayer))
+    players(currentPlayer).place = (players(currentPlayer).place + roll) % MaxNumberOfCells
+    println(players(currentPlayer) + "'s new location is " + players(currentPlayer).place)
     println("The category is " + currentCategory)
     askQuestion()
   }
 
   private def askQuestion(): Unit = {
-    if (currentCategory eq "Pop") println(popQuestions.remove(0))
-    if (currentCategory eq "Science") println(scienceQuestions.remove(0))
-    if (currentCategory eq "Sports") println(sportsQuestions.remove(0))
-    if (currentCategory eq "Rock") println(rockQuestions.remove(0))
+    println(questions(currentCategory).remove(0))
   }
 
-  private def currentCategory: String = {
-    if (places(currentPlayer) == 0) return "Pop"
-    if (places(currentPlayer) == 4) return "Pop"
-    if (places(currentPlayer) == 8) return "Pop"
-    if (places(currentPlayer) == 1) return "Science"
-    if (places(currentPlayer) == 5) return "Science"
-    if (places(currentPlayer) == 9) return "Science"
-    if (places(currentPlayer) == 2) return "Sports"
-    if (places(currentPlayer) == 6) return "Sports"
-    if (places(currentPlayer) == 10) return "Sports"
-    "Rock"
+  private def currentCategory: Category = {
+    players(currentPlayer).place % 4 match  {
+      case 0 => Pop
+      case 1 => Science
+      case 2 => Sports
+      case _ => Rock
+    }
   }
 
   def wasCorrectlyAnswered: Boolean =
@@ -85,8 +123,8 @@ class Game() {
         println("Answer was correct!!!!")
         currentPlayer += 1
         if (currentPlayer == players.size) currentPlayer = 0
-        purses(currentPlayer) += 1
-        println(players(currentPlayer) + " now has " + purses(currentPlayer) + " Gold Coins.")
+        players(currentPlayer).purse += 1
+        println(players(currentPlayer) + " now has " + players(currentPlayer).purse + " Gold Coins.")
         val winner = didPlayerWin
         winner
       } else {
@@ -96,8 +134,8 @@ class Game() {
       }
     } else {
       println("Answer was corrent!!!!")
-      purses(currentPlayer) += 1
-      println(players(currentPlayer) + " now has " + purses(currentPlayer) + " Gold Coins.")
+      players(currentPlayer).purse += 1
+      println(players(currentPlayer) + " now has " + players(currentPlayer).purse + " Gold Coins.")
       val winner = didPlayerWin
       currentPlayer += 1
       if (currentPlayer == players.size) currentPlayer = 0
@@ -114,5 +152,5 @@ class Game() {
   }
 
 
-  private def didPlayerWin: Boolean = !(purses(currentPlayer) == 6)
+  private def didPlayerWin: Boolean = !(players(currentPlayer).purse.value == MaxNumberOfPlayers)
 }

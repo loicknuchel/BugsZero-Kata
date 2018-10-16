@@ -13,10 +13,8 @@ object GameRunner {
   }
 
   def playGame(rand: Random): Unit = {
-    val aGame = new Game
-    aGame.add("Chet")
-    aGame.add("Pat")
-    aGame.add("Sue")
+
+    val aGame = new Game(Seq("Chet", "Pat", "Sue"))
     do {
       aGame.roll(rand.nextInt(5) + 1)
       if (rand.nextInt(9) == 7) notAWinner = aGame.wrongAnswer
