@@ -24,15 +24,15 @@ class Game(playerNames: Seq[String]) {
   def howManyPlayers: Int = players.size
 
   def roll(roll: Int): Unit = {
-    println(players(currentPlayerIndex) + " is the current player")
-    println("They have rolled a " + roll)
+    println(s"${players(currentPlayerIndex)} is the current player")
+    println(s"They have rolled a $roll")
     if (players(currentPlayerIndex).inPenaltyBox)
       if (roll % 2 != 0) {
         isGettingOutOfPenaltyBox = true
-        println(players(currentPlayerIndex) + " is getting out of the penalty box")
+        println(s"${players(currentPlayerIndex)} is getting out of the penalty box")
         movePlayerAndAskQuestion(roll)
       } else {
-        println(players(currentPlayerIndex) + " is not getting out of the penalty box")
+        println(s"${players(currentPlayerIndex)} is not getting out of the penalty box")
         isGettingOutOfPenaltyBox = false
       }
     else
@@ -45,7 +45,7 @@ class Game(playerNames: Seq[String]) {
         println("Answer was correct!!!!")
         nextPlayer()
         players(currentPlayerIndex).purse += 1
-        println(players(currentPlayerIndex) + " now has " + players(currentPlayerIndex).purse + " Gold Coins.")
+        println(s"${players(currentPlayerIndex)} now has ${players(currentPlayerIndex).purse} Gold Coins.")
         val winner = didPlayerWin
         winner
       } else {
@@ -55,7 +55,7 @@ class Game(playerNames: Seq[String]) {
     } else {
       println("Answer was corrent!!!!")
       players(currentPlayerIndex).purse += 1
-      println(players(currentPlayerIndex) + " now has " + players(currentPlayerIndex).purse + " Gold Coins.")
+      println(s"${players(currentPlayerIndex)} now has ${players(currentPlayerIndex).purse} Gold Coins.")
       val winner = didPlayerWin
       nextPlayer()
       winner
@@ -63,14 +63,14 @@ class Game(playerNames: Seq[String]) {
 
   def wrongAnswer: Boolean = {
     println("Question was incorrectly answered")
-    println(players(currentPlayerIndex) + " was sent to the penalty box")
+    println(s"${players(currentPlayerIndex)} was sent to the penalty box")
     players(currentPlayerIndex).inPenaltyBox = true
     nextPlayer()
     true
   }
 
   private def buildPlayer(playerName: String, index: Int): Player = {
-    println(playerName + " was added")
+    println(s"$playerName was added")
     println(s"They are player number ${index + 1}")
     Player(playerName, 0, Gold(0), inPenaltyBox = false)
   }
@@ -84,7 +84,7 @@ class Game(playerNames: Seq[String]) {
 
   private def movePlayerAndAskQuestion(roll: Int): Unit = {
     players(currentPlayerIndex).place = (players(currentPlayerIndex).place + roll) % MaxNumberOfCells
-    println(players(currentPlayerIndex) + "'s new location is " + players(currentPlayerIndex).place)
+    println(s"${players(currentPlayerIndex)}'s new location is ${players(currentPlayerIndex).place}")
     println("The category is " + currentCategory)
     askQuestion()
   }
