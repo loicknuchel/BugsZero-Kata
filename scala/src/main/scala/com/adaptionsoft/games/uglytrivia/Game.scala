@@ -11,6 +11,7 @@ class Game(playerNames: Seq[String]) {
 
   private val players = playerNames.zipWithIndex.map { case (name, index) => buildPlayer(name, index) }
   private var currentPlayerIndex = 0
+  private var currentPlayer = players(currentPlayerIndex)
   private var isGettingOutOfPenaltyBox: Boolean = false
   private val questions: Map[Category, mutable.ListBuffer[String]] =
     Category.values.map(c => c -> mutable.ListBuffer[String]()).toMap
@@ -24,15 +25,15 @@ class Game(playerNames: Seq[String]) {
   def howManyPlayers: Int = players.size
 
   def roll(roll: Int): Unit = {
-    println(s"${players(currentPlayerIndex)} is the current player")
+    println(s"${currentPlayer.name} is the current player")
     println(s"They have rolled a $roll")
-    if (players(currentPlayerIndex).inPenaltyBox)
+    if (currentPlayer.inPenaltyBox)
       if (roll % 2 != 0) {
         isGettingOutOfPenaltyBox = true
-        println(s"${players(currentPlayerIndex)} is getting out of the penalty box")
+        println(s"${currentPlayer.name} is getting out of the penalty box")
         movePlayerAndAskQuestion(roll)
       } else {
-        println(s"${players(currentPlayerIndex)} is not getting out of the penalty box")
+        println(s"${currentPlayer.name} is not getting out of the penalty box")
         isGettingOutOfPenaltyBox = false
       }
     else
@@ -40,12 +41,12 @@ class Game(playerNames: Seq[String]) {
   }
 
   def wasCorrectlyAnswered: Boolean =
-    if (players(currentPlayerIndex).inPenaltyBox) {
+    if (currentPlayer.inPenaltyBox) {
       if (isGettingOutOfPenaltyBox) {
         println("Answer was correct!!!!")
         nextPlayer()
-        players(currentPlayerIndex).purse += 1
-        println(s"${players(currentPlayerIndex)} now has ${players(currentPlayerIndex).purse} Gold Coins.")
+        currentPlayer.purse += 1
+        println(s"${currentPlayer.name} now has ${currentPlayer.purse.value} Gold Coins.")
         val winner = didPlayerWin
         winner
       } else {
@@ -54,8 +55,8 @@ class Game(playerNames: Seq[String]) {
       }
     } else {
       println("Answer was corrent!!!!")
-      players(currentPlayerIndex).purse += 1
-      println(s"${players(currentPlayerIndex)} now has ${players(currentPlayerIndex).purse} Gold Coins.")
+      currentPlayer.purse += 1
+      println(s"${currentPlayer.name} now has ${currentPlayer.purse.value} Gold Coins.")
       val winner = didPlayerWin
       nextPlayer()
       winner
@@ -63,8 +64,8 @@ class Game(playerNames: Seq[String]) {
 
   def wrongAnswer: Boolean = {
     println("Question was incorrectly answered")
-    println(s"${players(currentPlayerIndex)} was sent to the penalty box")
-    players(currentPlayerIndex).inPenaltyBox = true
+    println(s"${currentPlayer.name} was sent to the penalty box")
+    currentPlayer.inPenaltyBox = true
     nextPlayer()
     true
   }
@@ -80,11 +81,12 @@ class Game(playerNames: Seq[String]) {
   private def nextPlayer(): Unit = {
     currentPlayerIndex += 1
     if (currentPlayerIndex == players.size) currentPlayerIndex = 0
+    currentPlayer = players(currentPlayerIndex)
   }
 
   private def movePlayerAndAskQuestion(roll: Int): Unit = {
-    players(currentPlayerIndex).place = (players(currentPlayerIndex).place + roll) % MaxNumberOfCells
-    println(s"${players(currentPlayerIndex)}'s new location is ${players(currentPlayerIndex).place}")
+    currentPlayer.place = (currentPlayer.place + roll) % MaxNumberOfCells
+    println(s"${currentPlayer.name}'s new location is ${currentPlayer.place}")
     println("The category is " + currentCategory)
     askQuestion()
   }
@@ -94,7 +96,7 @@ class Game(playerNames: Seq[String]) {
   }
 
   private def currentCategory: Category = {
-    players(currentPlayerIndex).place % 4 match {
+    currentPlayer.place % 4 match {
       case 0 => Category.Pop
       case 1 => Category.Science
       case 2 => Category.Sports
@@ -102,7 +104,7 @@ class Game(playerNames: Seq[String]) {
     }
   }
 
-  private def didPlayerWin: Boolean = !(players(currentPlayerIndex).purse.value == MaxNumberOfPlayers)
+  private def didPlayerWin: Boolean = !(currentPlayer.purse.value == MaxNumberOfPlayers)
 }
 
 object Game {
@@ -113,16 +115,12 @@ object Game {
 
   case class Gold(var value: Int) {
     def +(v: Int): Gold = Gold(this.value + v)
-
-    override def toString: String = value.toString
   }
 
   case class Player(name: String,
                     var place: Int,
                     var purse: Gold,
-                    var inPenaltyBox: Boolean) {
-    override def toString: String = name
-  }
+                    var inPenaltyBox: Boolean)
 
   sealed trait Category
 
