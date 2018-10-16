@@ -13,11 +13,8 @@ class Game(playerNames: Seq[String]) {
   private var currentPlayerIndex = 0
   private var currentPlayer = players(currentPlayerIndex)
   private var isGettingOutOfPenaltyBox = false
-  private val questions = Category.values.map(c => c -> mutable.ListBuffer[String]()).toMap
+  private val questions = Category.values.map(c => c -> createQuestions(c)).toMap
 
-  (0 until NumberOfQuestions).foreach { i =>
-    Category.values.foreach(c => questions(c).append(createQuestions(c, i)))
-  }
   Messages.start(players)
 
   def isPlayable: Boolean = howManyPlayers >= MinNumberOfPlayers
@@ -40,37 +37,45 @@ class Game(playerNames: Seq[String]) {
       movePlayerAndAskQuestion(roll)
   }
 
-  def wasCorrectlyAnswered: Boolean =
-    if (currentPlayer.inPenaltyBox) {
-      if (isGettingOutOfPenaltyBox) {
-        println("Answer was correct!!!!")
-        nextPlayer()
+  // return if the player has won
+  def hasAnswered(correct: Boolean): Boolean = {
+    if (correct) {
+      if (currentPlayer.inPenaltyBox) {
+        if (isGettingOutOfPenaltyBox) {
+          println("Answer was correct!!!!")
+          nextPlayer()
+          currentPlayer.purse += 1
+          println(s"${currentPlayer.name} now has ${currentPlayer.purse.value} Gold Coins.")
+          val winner = hasWon(currentPlayer)
+          winner
+        } else {
+          nextPlayer()
+          false
+        }
+      } else {
+        println("Answer was corrent!!!!")
         currentPlayer.purse += 1
         println(s"${currentPlayer.name} now has ${currentPlayer.purse.value} Gold Coins.")
-        val winner = didPlayerWin
-        winner
-      } else {
+        val winner = hasWon(currentPlayer)
         nextPlayer()
-        true
+        winner
       }
     } else {
-      println("Answer was corrent!!!!")
-      currentPlayer.purse += 1
-      println(s"${currentPlayer.name} now has ${currentPlayer.purse.value} Gold Coins.")
-      val winner = didPlayerWin
+      println("Question was incorrectly answered")
+      println(s"${currentPlayer.name} was sent to the penalty box")
+      currentPlayer.inPenaltyBox = true
       nextPlayer()
-      winner
+      false
     }
-
-  def wrongAnswer: Boolean = {
-    println("Question was incorrectly answered")
-    println(s"${currentPlayer.name} was sent to the penalty box")
-    currentPlayer.inPenaltyBox = true
-    nextPlayer()
-    true
   }
 
-  private def createQuestions(category: Category, i: Int): String = s"$category Question $i"
+  private def createQuestions(category: Category): mutable.ListBuffer[String] = {
+    val list = mutable.ListBuffer[String]()
+    (0 until NumberOfQuestions).foreach { i =>
+      list.append(s"$category Question $i")
+    }
+    list
+  }
 
   private def nextPlayer(): Unit = {
     currentPlayerIndex += 1
@@ -85,8 +90,6 @@ class Game(playerNames: Seq[String]) {
     println(s"The category is $category")
     println(questions(category).remove(0))
   }
-
-  private def didPlayerWin: Boolean = currentPlayer.purse.value != 6
 }
 
 object Game {
@@ -138,4 +141,6 @@ object Game {
     }
   }
 
+  def hasWon(p: Player): Boolean =
+    p.purse.value == 6
 }

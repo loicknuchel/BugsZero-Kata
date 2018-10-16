@@ -5,7 +5,7 @@ import java.util.Random
 import com.adaptionsoft.games.uglytrivia.Game
 
 object GameRunner {
-  private var notAWinner = false
+  private var isAWinner = true
 
   def main(args: Array[String]): Unit = {
     val rand = new Random
@@ -17,10 +17,7 @@ object GameRunner {
     val aGame = new Game(Seq("Chet", "Pat", "Sue"))
     do {
       aGame.roll(rand.nextInt(5) + 1)
-      if (rand.nextInt(9) == 7) notAWinner = aGame.wrongAnswer
-      else notAWinner = aGame.wasCorrectlyAnswered
-    } while ( {
-      notAWinner
-    })
+      isAWinner = aGame.hasAnswered(rand.nextInt(9) != 7)
+    } while (!isAWinner)
   }
 }
