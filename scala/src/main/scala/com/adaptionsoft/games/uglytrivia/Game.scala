@@ -9,16 +9,16 @@ class Game(playerNames: Seq[String]) {
   assert(playerNames.size <= MaxNumberOfPlayers, s"At max $MaxNumberOfPlayers players")
   assert(playerNames.size >= MinNumberOfPlayers, s"At least $MinNumberOfPlayers players")
 
-  private val players = playerNames.zipWithIndex.map { case (name, index) => buildPlayer(name, index) }
+  private val players = playerNames.map(name => Player(name, 0, Gold(0), inPenaltyBox = false))
   private var currentPlayerIndex = 0
   private var currentPlayer = players(currentPlayerIndex)
-  private var isGettingOutOfPenaltyBox: Boolean = false
-  private val questions: Map[Category, mutable.ListBuffer[String]] =
-    Category.values.map(c => c -> mutable.ListBuffer[String]()).toMap
+  private var isGettingOutOfPenaltyBox = false
+  private val questions = Category.values.map(c => c -> mutable.ListBuffer[String]()).toMap
 
   (0 until NumberOfQuestions).foreach { i =>
     Category.values.foreach(c => questions(c).append(createQuestions(c, i)))
   }
+  Messages.start(players)
 
   def isPlayable: Boolean = howManyPlayers >= MinNumberOfPlayers
 
@@ -70,13 +70,7 @@ class Game(playerNames: Seq[String]) {
     true
   }
 
-  private def buildPlayer(playerName: String, index: Int): Player = {
-    println(s"$playerName was added")
-    println(s"They are player number ${index + 1}")
-    Player(playerName, 0, Gold(0), inPenaltyBox = false)
-  }
-
-  private def createQuestions(category: Category, i: Int): String = s"$category Question " + i
+  private def createQuestions(category: Category, i: Int): String = s"$category Question $i"
 
   private def nextPlayer(): Unit = {
     currentPlayerIndex += 1
@@ -87,27 +81,16 @@ class Game(playerNames: Seq[String]) {
   private def movePlayerAndAskQuestion(roll: Int): Unit = {
     currentPlayer.place = (currentPlayer.place + roll) % MaxNumberOfCells
     println(s"${currentPlayer.name}'s new location is ${currentPlayer.place}")
-    println("The category is " + currentCategory)
-    askQuestion()
+    val category = Category.from(currentPlayer.place)
+    println(s"The category is $category")
+    println(questions(category).remove(0))
   }
 
-  private def askQuestion(): Unit = {
-    println(questions(currentCategory).remove(0))
-  }
-
-  private def currentCategory: Category = {
-    currentPlayer.place % 4 match {
-      case 0 => Category.Pop
-      case 1 => Category.Science
-      case 2 => Category.Sports
-      case _ => Category.Rock
-    }
-  }
-
-  private def didPlayerWin: Boolean = !(currentPlayer.purse.value == MaxNumberOfPlayers)
+  private def didPlayerWin: Boolean = currentPlayer.purse.value != 6
 }
 
 object Game {
+
   val MaxNumberOfPlayers = 6
   val MinNumberOfPlayers = 2
   val MaxNumberOfCells = 12
@@ -134,7 +117,25 @@ object Game {
 
     case object Rock extends Category
 
-    val values = Seq(Pop, Science, Sports, Rock)
+    val values: Seq[Category] = Seq(Pop, Science, Sports, Rock)
+
+    def from(place: Int): Category = {
+      place % 4 match {
+        case 0 => Category.Pop
+        case 1 => Category.Science
+        case 2 => Category.Sports
+        case _ => Category.Rock
+      }
+    }
+  }
+
+  private object Messages {
+    def start(players: Seq[Player]): Unit = {
+      players.zipWithIndex.foreach { case (p, i) =>
+        println(s"${p.name} was added")
+        println(s"They are player number ${i + 1}")
+      }
+    }
   }
 
 }
