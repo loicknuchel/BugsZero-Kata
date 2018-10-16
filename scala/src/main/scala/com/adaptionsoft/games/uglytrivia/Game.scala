@@ -6,14 +6,13 @@ class Game(playerNames: Seq[String]) {
 
   import Game._
 
-  assert(playerNames.size <= MaxNumberOfPlayers, s"At max $MaxNumberOfPlayers players")
   assert(playerNames.size >= MinNumberOfPlayers, s"At least $MinNumberOfPlayers players")
+  assert(playerNames.size <= MaxNumberOfPlayers, s"At max $MaxNumberOfPlayers players")
 
+  private val questions = Category.values.map(c => c -> createQuestions(c)).toMap
   private val players = playerNames.map(name => Player(name, 0, Gold(0), inPenaltyBox = false))
   private var currentPlayerIndex = 0
   private var currentPlayer = players(currentPlayerIndex)
-  private var isGettingOutOfPenaltyBox = false
-  private val questions = Category.values.map(c => c -> createQuestions(c)).toMap
 
   Messages.start(players)
 
@@ -21,24 +20,24 @@ class Game(playerNames: Seq[String]) {
 
   def howManyPlayers: Int = players.size
 
-  def roll(roll: Int): Unit = {
+  // return if the player has won
+  def play(roll: Int, correct: Boolean): Boolean = {
     println(s"${currentPlayer.name} is the current player")
     println(s"They have rolled a $roll")
-    if (currentPlayer.inPenaltyBox)
+    var isGettingOutOfPenaltyBox = false
+    if (currentPlayer.inPenaltyBox) {
       if (roll % 2 != 0) {
         isGettingOutOfPenaltyBox = true
         println(s"${currentPlayer.name} is getting out of the penalty box")
-        movePlayerAndAskQuestion(roll)
+        movePlayerAndAskQuestion(currentPlayer, roll)
       } else {
         println(s"${currentPlayer.name} is not getting out of the penalty box")
         isGettingOutOfPenaltyBox = false
       }
-    else
-      movePlayerAndAskQuestion(roll)
-  }
+    } else {
+      movePlayerAndAskQuestion(currentPlayer, roll)
+    }
 
-  // return if the player has won
-  def hasAnswered(correct: Boolean): Boolean = {
     if (correct) {
       if (currentPlayer.inPenaltyBox) {
         if (isGettingOutOfPenaltyBox) {
@@ -69,26 +68,19 @@ class Game(playerNames: Seq[String]) {
     }
   }
 
-  private def createQuestions(category: Category): mutable.ListBuffer[String] = {
-    val list = mutable.ListBuffer[String]()
-    (0 until NumberOfQuestions).foreach { i =>
-      list.append(s"$category Question $i")
-    }
-    list
-  }
-
   private def nextPlayer(): Unit = {
     currentPlayerIndex += 1
     if (currentPlayerIndex == players.size) currentPlayerIndex = 0
     currentPlayer = players(currentPlayerIndex)
   }
 
-  private def movePlayerAndAskQuestion(roll: Int): Unit = {
-    currentPlayer.place = (currentPlayer.place + roll) % MaxNumberOfCells
-    println(s"${currentPlayer.name}'s new location is ${currentPlayer.place}")
-    val category = Category.from(currentPlayer.place)
+  private def movePlayerAndAskQuestion(player: Player, roll: Int): Unit = {
+    player.place = (player.place + roll) % MaxNumberOfCells
+    println(s"${player.name}'s new location is ${player.place}")
+    val category = Category.from(player.place)
+    val question = questions(category).remove(0)
     println(s"The category is $category")
-    println(questions(category).remove(0))
+    println(question)
   }
 }
 
@@ -141,6 +133,13 @@ object Game {
     }
   }
 
-  def hasWon(p: Player): Boolean =
-    p.purse.value == 6
+  def createQuestions(category: Category): mutable.ListBuffer[String] = {
+    val list = mutable.ListBuffer[String]()
+    (0 until NumberOfQuestions).foreach { i =>
+      list.append(s"$category Question $i")
+    }
+    list
+  }
+
+  def hasWon(p: Player): Boolean = p.purse.value == 6
 }
