@@ -55,10 +55,11 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
   def howManyPlayers: Int = players.size
 
   // temporal coupling: create a single method to avoid errors with call order (roll then answer then roll then answer...)
+  // prefer positive Booleans (return hasWon instead of notAWinner), it's easier to manipulate
   def play(roll: Int, answeredCorrectly: Boolean): Boolean = {
     this.roll(roll)
-    if (answeredCorrectly) wasCorrectlyAnswered
-    else wrongAnswer
+    if (answeredCorrectly) !wasCorrectlyAnswered
+    else !wrongAnswer
   }
 
   private def roll(roll: Int): Unit = {
