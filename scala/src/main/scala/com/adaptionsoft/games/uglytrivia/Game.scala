@@ -16,19 +16,17 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
 
   def howManyPlayers: Int = players.size
 
+  // TODO: simplify business logic
   // return if the player has won
   def play(roll: Int, correctAnswer: Boolean): Boolean = {
     println(s"${currentPlayer.name} is the current player")
     println(s"They have rolled a $roll")
-    var isGettingOutOfPenaltyBox = false
     if (currentPlayer.inPenaltyBox) {
-      if (roll % 2 == 0) {
-        isGettingOutOfPenaltyBox = false
-        println(s"${currentPlayer.name} is not getting out of the penalty box")
-      } else {
-        isGettingOutOfPenaltyBox = true
+      if (canExitPenaltyBox(roll)) {
         println(s"${currentPlayer.name} is getting out of the penalty box")
         movePlayerAndAskQuestion(currentPlayer, roll)
+      } else {
+        println(s"${currentPlayer.name} is not getting out of the penalty box")
       }
     } else {
       movePlayerAndAskQuestion(currentPlayer, roll)
@@ -36,22 +34,23 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
 
     if (correctAnswer) {
       if (currentPlayer.inPenaltyBox) {
-        if (isGettingOutOfPenaltyBox) {
+        if (canExitPenaltyBox(roll)) {
           println("Answer was correct!!!!")
-          nextPlayer()
-          currentPlayer.purse += 1
+          // FIXME: should exit penalty box
+          nextPlayer() // FIXME: should be just before returning, will fix wrong gold attribution
+          currentPlayer.addGold(1)
           println(s"${currentPlayer.name} now has ${currentPlayer.purse.value} Gold Coins.")
-          val winner = hasWon(currentPlayer)
+          val winner = currentPlayer.hasWon
           winner
         } else {
           nextPlayer()
           false
         }
       } else {
-        println("Answer was corrent!!!!")
-        currentPlayer.purse += 1
+        println("Answer was corrent!!!!") // FIXME: typo
+        currentPlayer.addGold(1)
         println(s"${currentPlayer.name} now has ${currentPlayer.purse.value} Gold Coins.")
-        val winner = hasWon(currentPlayer)
+        val winner = currentPlayer.hasWon
         nextPlayer()
         winner
       }
@@ -65,15 +64,16 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
   }
 
   private def nextPlayer(): Unit = {
-    currentPlayerIndex += 1
-    if (currentPlayerIndex == players.size) currentPlayerIndex = 0
+    currentPlayerIndex = (currentPlayerIndex + 1) % players.size
     currentPlayer = players(currentPlayerIndex)
   }
+
+  private def canExitPenaltyBox(roll: Int): Boolean = roll % 2 == 1
 
   // TODO: do not update param player
   // TODO: do not update Game state
   private def movePlayerAndAskQuestion(player: Player, roll: Int): Unit = {
-    player.place = (player.place + roll) % NumberOfCells
+    player.move(roll)
     println(s"${player.name}'s new location is ${player.place}")
     val category = Category.from(player.place)
     val i = questions(category)
@@ -86,6 +86,7 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
 object Game {
 
   val NumberOfCells = 12
+  val GoldToWin = 6
 
   case class Gold(value: Int) {
     def +(v: Int): Gold = Gold(value + v)
@@ -95,7 +96,13 @@ object Game {
   case class Player(name: String,
                     var place: Int,
                     var purse: Gold,
-                    var inPenaltyBox: Boolean)
+                    var inPenaltyBox: Boolean) {
+    def move(roll: Int): Unit = place = (place + roll) % NumberOfCells
+
+    def addGold(amount: Int): Unit = purse += amount
+
+    def hasWon: Boolean = purse.value == GoldToWin
+  }
 
   sealed trait Category
 
@@ -123,5 +130,4 @@ object Game {
     }
   }
 
-  def hasWon(p: Player): Boolean = p.purse.value == 6
 }
