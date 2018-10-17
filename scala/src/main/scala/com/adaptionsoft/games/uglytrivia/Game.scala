@@ -12,10 +12,7 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
   private val places = new Array[Int](MaxPlayerNumber)
   private val purses = new Array[Int](MaxPlayerNumber)
   private val inPenaltyBox = new Array[Boolean](MaxPlayerNumber)
-  private val popQuestions = mutable.ListBuffer[String]()
-  private val scienceQuestions = mutable.ListBuffer[String]()
-  private val sportsQuestions = mutable.ListBuffer[String]()
-  private val rockQuestions = mutable.ListBuffer[String]()
+  private val questions = Questions(Category.values)
   private var currentPlayer = 0
   private var isGettingOutOfPenaltyBox: Boolean = false
 
@@ -28,14 +25,6 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
   playerNames.foreach { name =>
     add(name)
   }
-  (0 until NumberOfQuestions).foreach { i =>
-    popQuestions.append("Pop Question " + i)
-    scienceQuestions.append("Science Question " + i)
-    sportsQuestions.append("Sports Question " + i)
-    rockQuestions.append(createRockQuestion(i))
-  }
-
-  private def createRockQuestion(index: Int): String = "Rock Question " + index
 
   // this method is now useless as there is always two or more players
   def isPlayable: Boolean = true
@@ -85,10 +74,7 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
   }
 
   private def askQuestion(): Unit = {
-    if (currentCategory == Category.Pop) println(popQuestions.remove(0))
-    if (currentCategory == Category.Science) println(scienceQuestions.remove(0))
-    if (currentCategory == Category.Sports) println(sportsQuestions.remove(0))
-    if (currentCategory == Category.Rock) println(rockQuestions.remove(0))
+    println(questions.pick(currentCategory))
   }
 
   private def currentCategory: Category = {
@@ -155,6 +141,25 @@ object Game {
     val values: Seq[Category] = Seq(Pop, Science, Sports, Rock)
 
     def from(place: Int): Category = Category.values(place % 4)
+  }
+
+  // manage questions for each category
+  case class Questions(var questions: Map[Category, mutable.ListBuffer[String]]) {
+    def pick(category: Category): String =
+      questions(category).remove(0)
+  }
+
+  object Questions {
+    def apply(categories: Seq[Category]): Questions =
+      new Questions(categories.map(c => c -> createQuestions(c)).toMap)
+
+    private def createQuestions(category: Category): mutable.ListBuffer[String] = {
+      val list = mutable.ListBuffer[String]()
+      (0 until NumberOfQuestions).foreach { i =>
+        list.append(s"$category Question $i")
+      }
+      list
+    }
   }
 
 }
