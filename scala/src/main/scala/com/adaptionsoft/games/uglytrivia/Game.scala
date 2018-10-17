@@ -2,7 +2,9 @@ package com.adaptionsoft.games.uglytrivia
 
 import scala.collection.mutable
 
-class Game() {
+// this constructor ensure that there is at least two players
+class Game(player1: String, player2: String, otherPlayers: String*) {
+  private val playerNames = player1 +: player2 +: otherPlayers
   private val players = mutable.ListBuffer[String]()
   private val places = new Array[Int](6)
   private val purses = new Array[Int](6)
@@ -14,6 +16,10 @@ class Game() {
   private var currentPlayer = 0
   private var isGettingOutOfPenaltyBox: Boolean = false
 
+  // add all players at the beginning
+  playerNames.foreach { name =>
+    add(name)
+  }
   (0 until 50).foreach { i =>
     popQuestions.append("Pop Question " + i)
     scienceQuestions.append("Science Question " + i)
@@ -23,9 +29,12 @@ class Game() {
 
   private def createRockQuestion(index: Int): String = "Rock Question " + index
 
-  def isPlayable: Boolean = howManyPlayers >= 2
+  // this method is now useless as there is always two or more players
+  def isPlayable: Boolean = true
 
-  def add(playerName: String): Boolean = {
+  // add is now private to force adding all players at the beginning and forbid adding players later
+  // depending on specification, you can leave it public to allow more players to join when the game has started
+  private def add(playerName: String): Boolean = {
     players.append(playerName)
     places(howManyPlayers) = 0
     purses(howManyPlayers) = 0
