@@ -22,7 +22,7 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
     println(s"${currentPlayer.name} is the current player")
     println(s"They have rolled a $roll")
 
-    if (!currentPlayer.inPenaltyBox) {
+    if (currentPlayer.notInPenaltyBox) {
       movePlayerAndAskQuestion(currentPlayer, roll)
     } else if (canExitPenaltyBox(roll)) {
       println(s"${currentPlayer.name} is getting out of the penalty box")
@@ -32,32 +32,19 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
     }
 
     if (!correctAnswer) {
+      currentPlayer.inPenaltyBox = true
       println("Question was incorrectly answered")
       println(s"${currentPlayer.name} was sent to the penalty box")
-      currentPlayer.inPenaltyBox = true
-      val winner = currentPlayer.hasWon
-      nextPlayer()
-      winner
-    } else if (currentPlayer.notInPenaltyBox) {
-      println("Answer was correct!!!!")
-      currentPlayer.addGold(1)
-      println(s"${currentPlayer.name} now has ${currentPlayer.purse.value} Gold Coins.")
-      val winner = currentPlayer.hasWon
-      nextPlayer()
-      winner
-    } else if (canExitPenaltyBox(roll)) {
+    } else if (currentPlayer.notInPenaltyBox || canExitPenaltyBox(roll)) {
       currentPlayer.inPenaltyBox = false
-      println("Answer was correct!!!!")
       currentPlayer.addGold(1)
+      println("Answer was correct!!!!")
       println(s"${currentPlayer.name} now has ${currentPlayer.purse.value} Gold Coins.")
-      val winner = currentPlayer.hasWon
-      nextPlayer()
-      winner
-    } else {
-      val winner = currentPlayer.hasWon
-      nextPlayer()
-      winner
     }
+
+    val winner = currentPlayer.hasWon
+    nextPlayer()
+    winner
   }
 
   private def nextPlayer(): Unit = {
@@ -71,10 +58,10 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
   // TODO: do not update Game state
   private def movePlayerAndAskQuestion(player: Player, roll: Int): Unit = {
     player.move(roll)
-    println(s"${player.name}'s new location is ${player.place}")
     val category = Category.from(player.place)
     val i = questions(category)
     questions = questions + (category -> (i + 1))
+    println(s"${player.name}'s new location is ${player.place}")
     println(s"The category is $category")
     println(s"$category Question $i")
   }
