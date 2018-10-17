@@ -85,23 +85,14 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
   }
 
   private def askQuestion(): Unit = {
-    if (currentCategory eq "Pop") println(popQuestions.remove(0))
-    if (currentCategory eq "Science") println(scienceQuestions.remove(0))
-    if (currentCategory eq "Sports") println(sportsQuestions.remove(0))
-    if (currentCategory eq "Rock") println(rockQuestions.remove(0))
+    if (currentCategory == Category.Pop) println(popQuestions.remove(0))
+    if (currentCategory == Category.Science) println(scienceQuestions.remove(0))
+    if (currentCategory == Category.Sports) println(sportsQuestions.remove(0))
+    if (currentCategory == Category.Rock) println(rockQuestions.remove(0))
   }
 
-  private def currentCategory: String = {
-    if (places(currentPlayer) == 0) return "Pop"
-    if (places(currentPlayer) == 4) return "Pop"
-    if (places(currentPlayer) == 8) return "Pop"
-    if (places(currentPlayer) == 1) return "Science"
-    if (places(currentPlayer) == 5) return "Science"
-    if (places(currentPlayer) == 9) return "Science"
-    if (places(currentPlayer) == 2) return "Sports"
-    if (places(currentPlayer) == 6) return "Sports"
-    if (places(currentPlayer) == 10) return "Sports"
-    "Rock"
+  private def currentCategory: Category = {
+    Category.from(places(currentPlayer))
   }
 
   private def wasCorrectlyAnswered: Boolean =
@@ -144,4 +135,23 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
 
 object Game {
   val MaxPlayerNumber = 6
+
+  // add constraints on possible categories and improve types
+  sealed trait Category
+
+  object Category {
+
+    case object Pop extends Category
+
+    case object Science extends Category
+
+    case object Sports extends Category
+
+    case object Rock extends Category
+
+    val values: Seq[Category] = Seq(Pop, Science, Sports, Rock)
+
+    def from(place: Int): Category = Category.values(place % 4)
+  }
+
 }
