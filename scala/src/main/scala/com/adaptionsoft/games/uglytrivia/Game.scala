@@ -28,7 +28,7 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
   playerNames.foreach { name =>
     add(name)
   }
-  (0 until 50).foreach { i =>
+  (0 until NumberOfQuestions).foreach { i =>
     popQuestions.append("Pop Question " + i)
     scienceQuestions.append("Science Question " + i)
     sportsQuestions.append("Sports Question " + i)
@@ -78,7 +78,7 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
 
   private def movePlayerAndAskQuestion(roll: Int): Unit = {
     places(currentPlayer) = places(currentPlayer) + roll
-    if (places(currentPlayer) > 11) places(currentPlayer) = places(currentPlayer) - 12
+    if (places(currentPlayer) >= NumberOfCells) places(currentPlayer) = places(currentPlayer) - NumberOfCells
     println(players(currentPlayer) + "'s new location is " + places(currentPlayer))
     println("The category is " + currentCategory)
     askQuestion()
@@ -130,11 +130,14 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
     currentPlayer = (currentPlayer + 1) % players.size
   }
 
-  private def didPlayerWin: Boolean = !(purses(currentPlayer) == 6)
+  private def didPlayerWin: Boolean = !(purses(currentPlayer) == GoldToWin)
 }
 
 object Game {
   val MaxPlayerNumber = 6
+  val NumberOfCells = 12
+  val GoldToWin = 6
+  val NumberOfQuestions = 50
 
   // add constraints on possible categories and improve types
   sealed trait Category
