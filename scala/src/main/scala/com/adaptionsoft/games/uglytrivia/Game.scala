@@ -3,16 +3,16 @@ package com.adaptionsoft.games.uglytrivia
 import scala.collection.mutable
 
 class Game() {
-  val players = mutable.ListBuffer[String]()
-  val places = new Array[Int](6)
-  val purses = new Array[Int](6)
-  val inPenaltyBox = new Array[Boolean](6)
-  val popQuestions = mutable.ListBuffer[String]()
-  val scienceQuestions = mutable.ListBuffer[String]()
-  val sportsQuestions = mutable.ListBuffer[String]()
-  val rockQuestions = mutable.ListBuffer[String]()
-  var currentPlayer = 0
-  var isGettingOutOfPenaltyBox: Boolean = false
+  private val players = mutable.ListBuffer[String]()
+  private val places = new Array[Int](6)
+  private val purses = new Array[Int](6)
+  private val inPenaltyBox = new Array[Boolean](6)
+  private val popQuestions = mutable.ListBuffer[String]()
+  private val scienceQuestions = mutable.ListBuffer[String]()
+  private val sportsQuestions = mutable.ListBuffer[String]()
+  private val rockQuestions = mutable.ListBuffer[String]()
+  private var currentPlayer = 0
+  private var isGettingOutOfPenaltyBox: Boolean = false
 
   (0 until 50).foreach { i =>
     popQuestions.append("Pop Question " + i)
@@ -21,7 +21,7 @@ class Game() {
     rockQuestions.append(createRockQuestion(i))
   }
 
-  def createRockQuestion(index: Int): String = "Rock Question " + index
+  private def createRockQuestion(index: Int): String = "Rock Question " + index
 
   def isPlayable: Boolean = howManyPlayers >= 2
 
