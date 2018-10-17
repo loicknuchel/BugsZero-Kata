@@ -111,14 +111,7 @@ object Game {
 
     val values: Seq[Category] = Seq(Pop, Science, Sports, Rock)
 
-    def from(place: Int): Category = {
-      place % 4 match {
-        case 0 => Category.Pop
-        case 1 => Category.Science
-        case 2 => Category.Sports
-        case _ => Category.Rock
-      }
-    }
+    def from(place: Int): Category = values(math.abs(place) % values.length)
   }
 
   private object Messages {
