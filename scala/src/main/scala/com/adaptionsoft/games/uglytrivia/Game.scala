@@ -21,43 +21,38 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
   def play(roll: Int, correctAnswer: Boolean): Boolean = {
     println(s"${currentPlayer.name} is the current player")
     println(s"They have rolled a $roll")
-    if (currentPlayer.inPenaltyBox) {
-      if (canExitPenaltyBox(roll)) {
-        println(s"${currentPlayer.name} is getting out of the penalty box")
-        movePlayerAndAskQuestion(currentPlayer, roll)
-      } else {
-        println(s"${currentPlayer.name} is not getting out of the penalty box")
-      }
-    } else {
+
+    if (!currentPlayer.inPenaltyBox) {
       movePlayerAndAskQuestion(currentPlayer, roll)
+    } else if (canExitPenaltyBox(roll)) {
+      println(s"${currentPlayer.name} is getting out of the penalty box")
+      movePlayerAndAskQuestion(currentPlayer, roll)
+    } else {
+      println(s"${currentPlayer.name} is not getting out of the penalty box")
     }
 
-    if (correctAnswer) {
-      if (currentPlayer.inPenaltyBox) {
-        if (canExitPenaltyBox(roll)) {
-          println("Answer was correct!!!!")
-          // FIXME: should exit penalty box
-          nextPlayer() // FIXME: should be just before returning, will fix wrong gold attribution
-          currentPlayer.addGold(1)
-          println(s"${currentPlayer.name} now has ${currentPlayer.purse.value} Gold Coins.")
-          val winner = currentPlayer.hasWon
-          winner
-        } else {
-          nextPlayer()
-          false
-        }
-      } else {
-        println("Answer was corrent!!!!") // FIXME: typo
-        currentPlayer.addGold(1)
-        println(s"${currentPlayer.name} now has ${currentPlayer.purse.value} Gold Coins.")
-        val winner = currentPlayer.hasWon
-        nextPlayer()
-        winner
-      }
-    } else {
+    if (!correctAnswer) {
       println("Question was incorrectly answered")
       println(s"${currentPlayer.name} was sent to the penalty box")
       currentPlayer.inPenaltyBox = true
+      nextPlayer()
+      false
+    } else if (currentPlayer.notInPenaltyBox) {
+      println("Answer was corrent!!!!") // FIXME: typo
+      currentPlayer.addGold(1)
+      println(s"${currentPlayer.name} now has ${currentPlayer.purse.value} Gold Coins.")
+      val winner = currentPlayer.hasWon
+      nextPlayer()
+      winner
+    } else if (canExitPenaltyBox(roll)) {
+      println("Answer was correct!!!!")
+      // FIXME: should exit penalty box
+      nextPlayer() // FIXME: should be just before returning, will fix wrong gold attribution
+      currentPlayer.addGold(1)
+      println(s"${currentPlayer.name} now has ${currentPlayer.purse.value} Gold Coins.")
+      val winner = currentPlayer.hasWon
+      winner
+    } else {
       nextPlayer()
       false
     }
@@ -97,6 +92,8 @@ object Game {
                     var place: Int,
                     var purse: Gold,
                     var inPenaltyBox: Boolean) {
+    def notInPenaltyBox: Boolean = !inPenaltyBox
+
     def move(roll: Int): Unit = place = (place + roll) % NumberOfCells
 
     def addGold(amount: Int): Unit = purse += amount
