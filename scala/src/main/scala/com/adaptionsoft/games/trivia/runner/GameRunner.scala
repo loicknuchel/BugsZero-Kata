@@ -11,7 +11,7 @@ object GameRunner {
   }
 
   def playGame(rand: Random): Unit = {
-    val aGame = new Game(Seq("Chet", "Pat", "Sue"))
+    val aGame = new Game("Chet", "Pat", "Sue")
     var hasWon = false
     while (!hasWon) {
       val roll = rand.nextInt(5) + 1

@@ -1,21 +1,18 @@
 package com.adaptionsoft.games.uglytrivia
 
-class Game(playerNames: Seq[String]) {
+class Game(player1: String, player2: String, otherPlayers: String*) {
 
   import Game._
 
-  assert(playerNames.size >= MinNumberOfPlayers, s"At least $MinNumberOfPlayers players")
-  assert(playerNames.size <= MaxNumberOfPlayers, s"At max $MaxNumberOfPlayers players")
-
   // TODO: create a GameState case class
   private var questions = Category.values.map(c => c -> 0).toMap
-  private val players = playerNames.map(name => Player(name, 0, Gold(0), inPenaltyBox = false))
+  private val players = (player1 +: player2 +: otherPlayers).map(name => Player(name, 0, Gold(0), inPenaltyBox = false))
   private var currentPlayerIndex = 0
   private var currentPlayer = players(currentPlayerIndex)
 
   Messages.start(players)
 
-  def isPlayable: Boolean = howManyPlayers >= MinNumberOfPlayers
+  def isPlayable: Boolean = true
 
   def howManyPlayers: Int = players.size
 
@@ -88,8 +85,6 @@ class Game(playerNames: Seq[String]) {
 
 object Game {
 
-  val MinNumberOfPlayers = 2
-  val MaxNumberOfPlayers = 6
   val NumberOfCells = 12
 
   case class Gold(value: Int) {
