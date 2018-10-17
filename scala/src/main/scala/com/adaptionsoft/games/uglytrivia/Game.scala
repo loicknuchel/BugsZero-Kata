@@ -5,12 +5,12 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
   import Game._
 
   // TODO: create a GameState case class
-  private var questions = Category.values.map(c => c -> 0).toMap
+  private val questions = Questions(Category.values)
   private val players = (player1 +: player2 +: otherPlayers).map(name => Player(name, 0, Gold(0), inPenaltyBox = false))
   private var currentPlayerIndex = 0
   private var currentPlayer = players(currentPlayerIndex)
 
-  Messages.start(players)
+  Messages.init(players)
 
   def isPlayable: Boolean = true
 
@@ -19,27 +19,27 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
   // TODO: simplify business logic
   // return if the player has won
   def play(roll: Int, correctAnswer: Boolean): Boolean = {
-    println(s"${currentPlayer.name} is the current player")
-    println(s"They have rolled a $roll")
+    Messages.play(currentPlayer, roll)
 
-    if (currentPlayer.notInPenaltyBox) {
-      movePlayerAndAskQuestion(currentPlayer, roll)
-    } else if (canExitPenaltyBox(roll)) {
-      println(s"${currentPlayer.name} is getting out of the penalty box")
-      movePlayerAndAskQuestion(currentPlayer, roll)
+    val normalPlay = currentPlayer.notInPenaltyBox || canExitPenaltyBox(roll)
+
+    if (normalPlay) {
+      if (currentPlayer.inPenaltyBox) Messages.exitPenaltyBox(currentPlayer)
+      currentPlayer.move(roll)
+      val category = Category.from(currentPlayer.place)
+      val question = questions.pick(category)
+      Messages.move(currentPlayer, category, question)
     } else {
-      println(s"${currentPlayer.name} is not getting out of the penalty box")
+      Messages.stayInPenaltyBox(currentPlayer)
     }
 
     if (!correctAnswer) {
       currentPlayer.inPenaltyBox = true
-      println("Question was incorrectly answered")
-      println(s"${currentPlayer.name} was sent to the penalty box")
-    } else if (currentPlayer.notInPenaltyBox || canExitPenaltyBox(roll)) {
+      Messages.incorrectAnswer(currentPlayer)
+    } else if (normalPlay) {
       currentPlayer.inPenaltyBox = false
       currentPlayer.addGold(1)
-      println("Answer was correct!!!!")
-      println(s"${currentPlayer.name} now has ${currentPlayer.purse.value} Gold Coins.")
+      Messages.correctAnswer(currentPlayer)
     }
 
     val winner = currentPlayer.hasWon
@@ -53,18 +53,6 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
   }
 
   private def canExitPenaltyBox(roll: Int): Boolean = roll % 2 == 1
-
-  // TODO: do not update param player
-  // TODO: do not update Game state
-  private def movePlayerAndAskQuestion(player: Player, roll: Int): Unit = {
-    player.move(roll)
-    val category = Category.from(player.place)
-    val i = questions(category)
-    questions = questions + (category -> (i + 1))
-    println(s"${player.name}'s new location is ${player.place}")
-    println(s"The category is $category")
-    println(s"$category Question $i")
-  }
 }
 
 object Game {
@@ -107,12 +95,54 @@ object Game {
     def from(place: Int): Category = values(math.abs(place) % values.length)
   }
 
+  case class Questions(var questions: Map[Category, Int]) {
+    def pick(category: Category): String = {
+      val i = questions(category)
+      questions = questions + (category -> (i + 1))
+      s"$category Question $i"
+    }
+  }
+
+  object Questions {
+    def apply(categories: Seq[Category]): Questions =
+      new Questions(categories.map(c => c -> 0).toMap)
+  }
+
   private object Messages {
-    def start(players: Seq[Player]): Unit = {
+    def init(players: Seq[Player]): Unit = {
       players.zipWithIndex.foreach { case (p, i) =>
         println(s"${p.name} was added")
         println(s"They are player number ${i + 1}")
       }
+    }
+
+    def play(player: Player, roll: Int): Unit = {
+      println(s"${player.name} is the current player")
+      println(s"They have rolled a $roll")
+    }
+
+    def move(player: Player, category: Category, question: String): Unit = {
+      println(s"${player.name}'s new location is ${player.place}")
+      println(s"The category is $category")
+      println(question)
+    }
+
+    def correctAnswer(player: Player): Unit = {
+      println("Answer was correct!!!!")
+      println(s"${player.name} now has ${player.purse.value} Gold Coins.")
+    }
+
+    def incorrectAnswer(player: Player): Unit = {
+      println("Question was incorrectly answered")
+      println(s"${player.name} was sent to the penalty box")
+    }
+
+    def exitPenaltyBox(player: Player): Unit = {
+      println(s"${player.name} is getting out of the penalty box")
+    }
+
+    def stayInPenaltyBox(player: Player): Unit = {
+      println(s"${player.name} is not getting out of the penalty box")
     }
   }
 
