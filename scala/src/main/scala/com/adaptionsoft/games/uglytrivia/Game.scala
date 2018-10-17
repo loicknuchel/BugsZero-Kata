@@ -1,7 +1,5 @@
 package com.adaptionsoft.games.uglytrivia
 
-import scala.collection.mutable
-
 class Game(playerNames: Seq[String]) {
 
   import Game._
@@ -9,7 +7,7 @@ class Game(playerNames: Seq[String]) {
   assert(playerNames.size >= MinNumberOfPlayers, s"At least $MinNumberOfPlayers players")
   assert(playerNames.size <= MaxNumberOfPlayers, s"At max $MaxNumberOfPlayers players")
 
-  private val questions = Category.values.map(c => c -> createQuestions(c)).toMap
+  private var questions = Category.values.map(c => c -> 0).toMap
   private val players = playerNames.map(name => Player(name, 0, Gold(0), inPenaltyBox = false))
   private var currentPlayerIndex = 0
   private var currentPlayer = players(currentPlayerIndex)
@@ -21,7 +19,7 @@ class Game(playerNames: Seq[String]) {
   def howManyPlayers: Int = players.size
 
   // return if the player has won
-  def play(roll: Int, correct: Boolean): Boolean = {
+  def play(roll: Int, correctAnswer: Boolean): Boolean = {
     println(s"${currentPlayer.name} is the current player")
     println(s"They have rolled a $roll")
     var isGettingOutOfPenaltyBox = false
@@ -38,7 +36,7 @@ class Game(playerNames: Seq[String]) {
       movePlayerAndAskQuestion(currentPlayer, roll)
     }
 
-    if (correct) {
+    if (correctAnswer) {
       if (currentPlayer.inPenaltyBox) {
         if (isGettingOutOfPenaltyBox) {
           println("Answer was correct!!!!")
@@ -75,21 +73,21 @@ class Game(playerNames: Seq[String]) {
   }
 
   private def movePlayerAndAskQuestion(player: Player, roll: Int): Unit = {
-    player.place = (player.place + roll) % MaxNumberOfCells
+    player.place = (player.place + roll) % NumberOfCells
     println(s"${player.name}'s new location is ${player.place}")
     val category = Category.from(player.place)
-    val question = questions(category).remove(0)
+    val i = questions(category)
+    questions = questions + (category -> (i + 1))
     println(s"The category is $category")
-    println(question)
+    println(s"$category Question $i")
   }
 }
 
 object Game {
 
-  val MaxNumberOfPlayers = 6
   val MinNumberOfPlayers = 2
-  val MaxNumberOfCells = 12
-  val NumberOfQuestions = 50
+  val MaxNumberOfPlayers = 6
+  val NumberOfCells = 12
 
   case class Gold(var value: Int) {
     def +(v: Int): Gold = Gold(this.value + v)
@@ -131,14 +129,6 @@ object Game {
         println(s"They are player number ${i + 1}")
       }
     }
-  }
-
-  def createQuestions(category: Category): mutable.ListBuffer[String] = {
-    val list = mutable.ListBuffer[String]()
-    (0 until NumberOfQuestions).foreach { i =>
-      list.append(s"$category Question $i")
-    }
-    list
   }
 
   def hasWon(p: Player): Boolean = p.purse.value == 6

@@ -12,11 +12,11 @@ object GameRunner {
 
   def playGame(rand: Random): Unit = {
     val aGame = new Game(Seq("Chet", "Pat", "Sue"))
-    var isAWinner = false
-    while (!isAWinner) {
+    var hasWon = false
+    while (!hasWon) {
       val roll = rand.nextInt(5) + 1
-      val correctAnswer = rand.nextInt(9) != 7
-      isAWinner = aGame.play(roll, correctAnswer)
+      val answerCorrectly = rand.nextInt(9) != 7
+      hasWon = aGame.play(roll, answerCorrectly)
     }
   }
 }
