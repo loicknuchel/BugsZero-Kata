@@ -108,15 +108,13 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
     if (inPenaltyBox(currentPlayer)) {
       if (isGettingOutOfPenaltyBox) {
         println("Answer was correct!!!!")
-        currentPlayer += 1
-        if (currentPlayer == players.size) currentPlayer = 0
+        nextPlayer()
         purses(currentPlayer) += 1
         println(players(currentPlayer) + " now has " + purses(currentPlayer) + " Gold Coins.")
         val winner = didPlayerWin
         winner
       } else {
-        currentPlayer += 1
-        if (currentPlayer == players.size) currentPlayer = 0
+        nextPlayer()
         true
       }
     } else {
@@ -124,8 +122,7 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
       purses(currentPlayer) += 1
       println(players(currentPlayer) + " now has " + purses(currentPlayer) + " Gold Coins.")
       val winner = didPlayerWin
-      currentPlayer += 1
-      if (currentPlayer == players.size) currentPlayer = 0
+      nextPlayer()
       winner
     }
 
@@ -133,11 +130,14 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
     println("Question was incorrectly answered")
     println(players(currentPlayer) + " was sent to the penalty box")
     inPenaltyBox(currentPlayer) = true
-    currentPlayer += 1
-    if (currentPlayer == players.size) currentPlayer = 0
+    nextPlayer()
     true
   }
 
+  // remove code duplication and add semantic to the action
+  private def nextPlayer(): Unit = {
+    currentPlayer = (currentPlayer + 1) % players.size
+  }
 
   private def didPlayerWin: Boolean = !(purses(currentPlayer) == 6)
 }
