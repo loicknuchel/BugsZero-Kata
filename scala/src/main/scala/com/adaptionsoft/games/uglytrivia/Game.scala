@@ -35,26 +35,28 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
       println("Question was incorrectly answered")
       println(s"${currentPlayer.name} was sent to the penalty box")
       currentPlayer.inPenaltyBox = true
+      val winner = currentPlayer.hasWon
       nextPlayer()
-      false
+      winner
     } else if (currentPlayer.notInPenaltyBox) {
-      println("Answer was corrent!!!!") // FIXME: typo
+      println("Answer was correct!!!!")
       currentPlayer.addGold(1)
       println(s"${currentPlayer.name} now has ${currentPlayer.purse.value} Gold Coins.")
       val winner = currentPlayer.hasWon
       nextPlayer()
       winner
     } else if (canExitPenaltyBox(roll)) {
+      currentPlayer.inPenaltyBox = false
       println("Answer was correct!!!!")
-      // FIXME: should exit penalty box
-      nextPlayer() // FIXME: should be just before returning, will fix wrong gold attribution
       currentPlayer.addGold(1)
       println(s"${currentPlayer.name} now has ${currentPlayer.purse.value} Gold Coins.")
       val winner = currentPlayer.hasWon
+      nextPlayer()
       winner
     } else {
+      val winner = currentPlayer.hasWon
       nextPlayer()
-      false
+      winner
     }
   }
 
