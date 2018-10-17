@@ -7,6 +7,7 @@ class Game(playerNames: Seq[String]) {
   assert(playerNames.size >= MinNumberOfPlayers, s"At least $MinNumberOfPlayers players")
   assert(playerNames.size <= MaxNumberOfPlayers, s"At max $MaxNumberOfPlayers players")
 
+  // TODO: create a GameState case class
   private var questions = Category.values.map(c => c -> 0).toMap
   private val players = playerNames.map(name => Player(name, 0, Gold(0), inPenaltyBox = false))
   private var currentPlayerIndex = 0
@@ -24,13 +25,13 @@ class Game(playerNames: Seq[String]) {
     println(s"They have rolled a $roll")
     var isGettingOutOfPenaltyBox = false
     if (currentPlayer.inPenaltyBox) {
-      if (roll % 2 != 0) {
+      if (roll % 2 == 0) {
+        isGettingOutOfPenaltyBox = false
+        println(s"${currentPlayer.name} is not getting out of the penalty box")
+      } else {
         isGettingOutOfPenaltyBox = true
         println(s"${currentPlayer.name} is getting out of the penalty box")
         movePlayerAndAskQuestion(currentPlayer, roll)
-      } else {
-        println(s"${currentPlayer.name} is not getting out of the penalty box")
-        isGettingOutOfPenaltyBox = false
       }
     } else {
       movePlayerAndAskQuestion(currentPlayer, roll)
@@ -72,6 +73,8 @@ class Game(playerNames: Seq[String]) {
     currentPlayer = players(currentPlayerIndex)
   }
 
+  // TODO: do not update param player
+  // TODO: do not update Game state
   private def movePlayerAndAskQuestion(player: Player, roll: Int): Unit = {
     player.place = (player.place + roll) % NumberOfCells
     println(s"${player.name}'s new location is ${player.place}")
@@ -89,10 +92,11 @@ object Game {
   val MaxNumberOfPlayers = 6
   val NumberOfCells = 12
 
-  case class Gold(var value: Int) {
-    def +(v: Int): Gold = Gold(this.value + v)
+  case class Gold(value: Int) {
+    def +(v: Int): Gold = Gold(value + v)
   }
 
+  // TODO: remove mutable attributes
   case class Player(name: String,
                     var place: Int,
                     var purse: Gold,
