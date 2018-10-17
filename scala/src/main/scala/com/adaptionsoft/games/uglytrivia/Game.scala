@@ -54,7 +54,14 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
 
   def howManyPlayers: Int = players.size
 
-  def roll(roll: Int): Unit = {
+  // temporal coupling: create a single method to avoid errors with call order (roll then answer then roll then answer...)
+  def play(roll: Int, answeredCorrectly: Boolean): Boolean = {
+    this.roll(roll)
+    if (answeredCorrectly) wasCorrectlyAnswered
+    else wrongAnswer
+  }
+
+  private def roll(roll: Int): Unit = {
     println(players(currentPlayer) + " is the current player")
     println("They have rolled a " + roll)
     if (inPenaltyBox(currentPlayer)) if (roll % 2 != 0) {
@@ -96,7 +103,7 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
     "Rock"
   }
 
-  def wasCorrectlyAnswered: Boolean =
+  private def wasCorrectlyAnswered: Boolean =
     if (inPenaltyBox(currentPlayer)) {
       if (isGettingOutOfPenaltyBox) {
         println("Answer was correct!!!!")
@@ -121,7 +128,7 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
       winner
     }
 
-  def wrongAnswer: Boolean = {
+  private def wrongAnswer: Boolean = {
     println("Question was incorrectly answered")
     println(players(currentPlayer) + " was sent to the penalty box")
     inPenaltyBox(currentPlayer) = true
