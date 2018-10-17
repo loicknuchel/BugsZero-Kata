@@ -4,17 +4,25 @@ import scala.collection.mutable
 
 // this constructor ensure that there is at least two players
 class Game(player1: String, player2: String, otherPlayers: String*) {
+
+  import Game._
+
   private val playerNames = player1 +: player2 +: otherPlayers
   private val players = mutable.ListBuffer[String]()
-  private val places = new Array[Int](6)
-  private val purses = new Array[Int](6)
-  private val inPenaltyBox = new Array[Boolean](6)
+  private val places = new Array[Int](MaxPlayerNumber)
+  private val purses = new Array[Int](MaxPlayerNumber)
+  private val inPenaltyBox = new Array[Boolean](MaxPlayerNumber)
   private val popQuestions = mutable.ListBuffer[String]()
   private val scienceQuestions = mutable.ListBuffer[String]()
   private val sportsQuestions = mutable.ListBuffer[String]()
   private val rockQuestions = mutable.ListBuffer[String]()
   private var currentPlayer = 0
   private var isGettingOutOfPenaltyBox: Boolean = false
+
+  // will throw an exception if there is too much players
+  // it's better than having errors from elsewhere in the program
+  // depending on specification, it can be improved by allowing more players or by having different constructors for each number of players
+  assert(playerNames.length <= MaxPlayerNumber, s"Game should have $MaxPlayerNumber players but has ${playerNames.length} (${playerNames.mkString(", ")})")
 
   // add all players at the beginning
   playerNames.foreach { name =>
@@ -124,4 +132,8 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
 
 
   private def didPlayerWin: Boolean = !(purses(currentPlayer) == 6)
+}
+
+object Game {
+  val MaxPlayerNumber = 6
 }
