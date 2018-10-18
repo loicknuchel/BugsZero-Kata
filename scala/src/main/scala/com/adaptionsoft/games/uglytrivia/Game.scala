@@ -8,10 +8,8 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
   import Game._
 
   private val playerNames = player1 +: player2 +: otherPlayers
-  private val players = mutable.ListBuffer[String]()
-  private val places = new Array[Int](MaxPlayerNumber)
-  private val purses = new Array[Int](MaxPlayerNumber)
-  private val inPenaltyBox = new Array[Boolean](MaxPlayerNumber)
+  // removing places, purses and inPenaltyBox arrays allows for any number of players
+  private val players = mutable.ListBuffer[Player]()
   private val questions = Questions(Category.values)
   private var currentPlayer = 0
   private var isGettingOutOfPenaltyBox: Boolean = false
@@ -32,10 +30,7 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
   // add is now private to force adding all players at the beginning and forbid adding players later
   // depending on specification, you can leave it public to allow more players to join when the game has started
   private def add(playerName: String): Boolean = {
-    players.append(playerName)
-    places(howManyPlayers) = 0
-    purses(howManyPlayers) = 0
-    inPenaltyBox(howManyPlayers) = false
+    players.append(Player(playerName, 0, 0, inPenaltyBox = false))
     println(playerName + " was added")
     println("They are player number " + players.size)
     true
@@ -52,23 +47,25 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
   }
 
   private def roll(roll: Int): Unit = {
-    println(players(currentPlayer) + " is the current player")
+    println(players(currentPlayer).name + " is the current player")
     println("They have rolled a " + roll)
-    if (inPenaltyBox(currentPlayer)) if (roll % 2 != 0) {
-      isGettingOutOfPenaltyBox = true
-      println(players(currentPlayer) + " is getting out of the penalty box")
-      movePlayerAndAskQuestion(roll)
-    } else {
-      println(players(currentPlayer) + " is not getting out of the penalty box")
-      isGettingOutOfPenaltyBox = false
+    if (players(currentPlayer).inPenaltyBox) {
+      if (roll % 2 != 0) {
+        isGettingOutOfPenaltyBox = true
+        println(players(currentPlayer).name + " is getting out of the penalty box")
+        movePlayerAndAskQuestion(roll)
+      } else {
+        println(players(currentPlayer).name + " is not getting out of the penalty box")
+        isGettingOutOfPenaltyBox = false
+      }
     } else
       movePlayerAndAskQuestion(roll)
   }
 
   private def movePlayerAndAskQuestion(roll: Int): Unit = {
-    places(currentPlayer) = places(currentPlayer) + roll
-    if (places(currentPlayer) >= NumberOfCells) places(currentPlayer) = places(currentPlayer) - NumberOfCells
-    println(players(currentPlayer) + "'s new location is " + places(currentPlayer))
+    players(currentPlayer).place = players(currentPlayer).place + roll
+    if (players(currentPlayer).place >= NumberOfCells) players(currentPlayer).place = players(currentPlayer).place - NumberOfCells
+    println(players(currentPlayer).name + "'s new location is " + players(currentPlayer).place)
     println("The category is " + currentCategory)
     askQuestion()
   }
@@ -78,16 +75,16 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
   }
 
   private def currentCategory: Category = {
-    Category.from(places(currentPlayer))
+    Category.from(players(currentPlayer).place)
   }
 
   private def wasCorrectlyAnswered: Boolean =
-    if (inPenaltyBox(currentPlayer)) {
+    if (players(currentPlayer).inPenaltyBox) {
       if (isGettingOutOfPenaltyBox) {
         println("Answer was correct!!!!")
         nextPlayer()
-        purses(currentPlayer) += 1
-        println(players(currentPlayer) + " now has " + purses(currentPlayer) + " Gold Coins.")
+        players(currentPlayer).purse += 1
+        println(players(currentPlayer).name + " now has " + players(currentPlayer).purse + " Gold Coins.")
         val winner = didPlayerWin
         winner
       } else {
@@ -96,8 +93,8 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
       }
     } else {
       println("Answer was corrent!!!!")
-      purses(currentPlayer) += 1
-      println(players(currentPlayer) + " now has " + purses(currentPlayer) + " Gold Coins.")
+      players(currentPlayer).purse += 1
+      println(players(currentPlayer).name + " now has " + players(currentPlayer).purse + " Gold Coins.")
       val winner = didPlayerWin
       nextPlayer()
       winner
@@ -105,8 +102,8 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
 
   private def wrongAnswer: Boolean = {
     println("Question was incorrectly answered")
-    println(players(currentPlayer) + " was sent to the penalty box")
-    inPenaltyBox(currentPlayer) = true
+    println(players(currentPlayer).name + " was sent to the penalty box")
+    players(currentPlayer).inPenaltyBox = true
     nextPlayer()
     true
   }
@@ -116,7 +113,7 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
     currentPlayer = (currentPlayer + 1) % players.size
   }
 
-  private def didPlayerWin: Boolean = !(purses(currentPlayer) == GoldToWin)
+  private def didPlayerWin: Boolean = !(players(currentPlayer).purse == GoldToWin)
 }
 
 object Game {
@@ -161,5 +158,11 @@ object Game {
       list
     }
   }
+
+  // group player info inside a class instead of multiple arrays
+  case class Player(name: String,
+                    var place: Int,
+                    var purse: Int,
+                    var inPenaltyBox: Boolean)
 
 }
