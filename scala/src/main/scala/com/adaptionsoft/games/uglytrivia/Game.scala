@@ -46,22 +46,23 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
     if (normalPlay) {
       if(currentPlayer.inPenaltyBox) println(currentPlayer.name + " is getting out of the penalty box")
       currentPlayer.move(roll)
+      val category = Category.from(currentPlayer.place)
+      val question = questions.pick(category)
       println(currentPlayer.name + "'s new location is " + currentPlayer.place)
-      val currentCategory = Category.from(currentPlayer.place)
-      println("The category is " + currentCategory)
-      println(questions.pick(currentCategory))
+      println("The category is " + category)
+      println(question)
     } else {
       println(currentPlayer.name + " is not getting out of the penalty box")
     }
 
     if (!answeredCorrectly) {
+      currentPlayer.inPenaltyBox = true
       println("Question was incorrectly answered")
       println(currentPlayer.name + " was sent to the penalty box")
-      currentPlayer.inPenaltyBox = true
     } else if (normalPlay) {
-      println("Answer was correct!!!!")
       currentPlayer.inPenaltyBox = false
       currentPlayer.addGold(1)
+      println("Answer was correct!!!!")
       println(currentPlayer.name + " now has " + currentPlayer.purse + " Gold Coins.")
     }
 
