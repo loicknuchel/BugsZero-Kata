@@ -45,7 +45,11 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
 
     if (normalPlay) {
       if(currentPlayer.inPenaltyBox) println(currentPlayer.name + " is getting out of the penalty box")
-      movePlayerAndAskQuestion(roll)
+      currentPlayer.move(roll)
+      println(currentPlayer.name + "'s new location is " + currentPlayer.place)
+      val currentCategory = Category.from(currentPlayer.place)
+      println("The category is " + currentCategory)
+      println(questions.pick(currentCategory))
     } else {
       println(currentPlayer.name + " is not getting out of the penalty box")
     }
@@ -68,14 +72,6 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
 
   // this method will add meaning to the action, it's clearer in the if condition
   private def canExitPenaltyBox(roll: Int): Boolean = roll % 2 == 1
-
-  private def movePlayerAndAskQuestion(roll: Int): Unit = {
-    currentPlayer.move(roll)
-    println(currentPlayer.name + "'s new location is " + currentPlayer.place)
-    val currentCategory = Category.from(currentPlayer.place)
-    println("The category is " + currentCategory)
-    println(questions.pick(currentCategory))
-  }
 
   // remove code duplication and add semantic to the action
   private def nextPlayer(): Unit = {
