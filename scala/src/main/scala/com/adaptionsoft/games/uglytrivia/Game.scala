@@ -35,8 +35,8 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
   // prefer positive Booleans (return hasWon instead of notAWinner), it's easier to manipulate
   def play(roll: Int, answeredCorrectly: Boolean): Boolean = {
     this.roll(roll)
-    if (answeredCorrectly) !wasCorrectlyAnswered
-    else !wrongAnswer
+    if (answeredCorrectly) wasCorrectlyAnswered
+    else wrongAnswer
   }
 
   private def roll(roll: Int): Unit = {
@@ -77,17 +77,17 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
         nextPlayer()
         currentPlayer.addGold(1)
         println(currentPlayer.name + " now has " + currentPlayer.purse + " Gold Coins.")
-        val winner = didPlayerWin
+        val winner = currentPlayer.hasWon
         winner
       } else {
         nextPlayer()
-        true
+        false
       }
     } else {
       println("Answer was corrent!!!!")
       currentPlayer.addGold(1)
       println(currentPlayer.name + " now has " + currentPlayer.purse + " Gold Coins.")
-      val winner = didPlayerWin
+      val winner = currentPlayer.hasWon
       nextPlayer()
       winner
     }
@@ -97,7 +97,7 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
     println(currentPlayer.name + " was sent to the penalty box")
     currentPlayer.inPenaltyBox = true
     nextPlayer()
-    true
+    false
   }
 
   // remove code duplication and add semantic to the action
@@ -106,7 +106,8 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
     currentPlayer = players(currentPlayerIndex)
   }
 
-  private def didPlayerWin: Boolean = !currentPlayer.hasWon
+  // didPlayerWin method was wrongly named: it returns false when the player did win !!!
+  // having the hasWon method, it can be deleted \o/
 }
 
 object Game {
