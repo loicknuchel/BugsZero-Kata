@@ -20,10 +20,7 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
   assert(playerNames.length <= MaxPlayerNumber, s"Game should have $MaxPlayerNumber players but has ${playerNames.length} (${playerNames.mkString(", ")})")
 
   // print init messages
-  playerNames.zipWithIndex.foreach { case (name, i) =>
-    println(name + " was added")
-    println("They are player number " + (i + 1))
-  }
+  Messages.init(players)
 
   // this method is now useless as there is always two or more players
   def isPlayable: Boolean = true
@@ -38,32 +35,27 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
   // having all the code in the same place, it highlights that inPenaltyBox is never set to false
   // actions when not in penalty box and when exit penalty box is very similar so merge it
   def play(roll: Int, answeredCorrectly: Boolean): Boolean = {
-    println(currentPlayer.name + " is the current player")
-    println("They have rolled a " + roll)
+    Messages.play(currentPlayer, roll)
 
     val normalPlay = !currentPlayer.inPenaltyBox || canExitPenaltyBox(roll)
 
     if (normalPlay) {
-      if(currentPlayer.inPenaltyBox) println(currentPlayer.name + " is getting out of the penalty box")
+      if(currentPlayer.inPenaltyBox) Messages.exitPenaltyBox(currentPlayer)
       currentPlayer.move(roll)
       val category = Category.from(currentPlayer.place)
       val question = questions.pick(category)
-      println(currentPlayer.name + "'s new location is " + currentPlayer.place)
-      println("The category is " + category)
-      println(question)
+      Messages.move(currentPlayer, category, question)
     } else {
-      println(currentPlayer.name + " is not getting out of the penalty box")
+      Messages.stayInPenaltyBox(currentPlayer)
     }
 
     if (!answeredCorrectly) {
       currentPlayer.inPenaltyBox = true
-      println("Question was incorrectly answered")
-      println(currentPlayer.name + " was sent to the penalty box")
+      Messages.incorrectAnswer(currentPlayer)
     } else if (normalPlay) {
       currentPlayer.inPenaltyBox = false
       currentPlayer.addGold(1)
-      println("Answer was correct!!!!")
-      println(currentPlayer.name + " now has " + currentPlayer.purse + " Gold Coins.")
+      Messages.correctAnswer(currentPlayer)
     }
 
     val winner = currentPlayer.hasWon
@@ -140,4 +132,41 @@ object Game {
     def hasWon: Boolean = purse == GoldToWin
   }
 
+  object Messages {
+    def init(players: Seq[Player]): Unit = {
+      players.zipWithIndex.foreach { case (p, i) =>
+        println(s"${p.name} was added")
+        println(s"They are player number ${i + 1}")
+      }
+    }
+
+    def play(player: Player, roll: Int): Unit = {
+      println(s"${player.name} is the current player")
+      println(s"They have rolled a $roll")
+    }
+
+    def move(player: Player, category: Category, question: String): Unit = {
+      println(s"${player.name}'s new location is ${player.place}")
+      println(s"The category is $category")
+      println(question)
+    }
+
+    def correctAnswer(player: Player): Unit = {
+      println("Answer was correct!!!!")
+      println(s"${player.name} now has ${player.purse} Gold Coins.")
+    }
+
+    def incorrectAnswer(player: Player): Unit = {
+      println("Question was incorrectly answered")
+      println(s"${player.name} was sent to the penalty box")
+    }
+
+    def exitPenaltyBox(player: Player): Unit = {
+      println(s"${player.name} is getting out of the penalty box")
+    }
+
+    def stayInPenaltyBox(player: Player): Unit = {
+      println(s"${player.name} is not getting out of the penalty box")
+    }
+  }
 }
