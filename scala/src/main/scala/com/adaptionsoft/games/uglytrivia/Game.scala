@@ -63,8 +63,7 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
   }
 
   private def movePlayerAndAskQuestion(roll: Int): Unit = {
-    players(currentPlayer).place = players(currentPlayer).place + roll
-    if (players(currentPlayer).place >= NumberOfCells) players(currentPlayer).place = players(currentPlayer).place - NumberOfCells
+    players(currentPlayer).move(roll)
     println(players(currentPlayer).name + "'s new location is " + players(currentPlayer).place)
     println("The category is " + currentCategory)
     askQuestion()
@@ -83,7 +82,7 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
       if (isGettingOutOfPenaltyBox) {
         println("Answer was correct!!!!")
         nextPlayer()
-        players(currentPlayer).purse += 1
+        players(currentPlayer).addGold(1)
         println(players(currentPlayer).name + " now has " + players(currentPlayer).purse + " Gold Coins.")
         val winner = didPlayerWin
         winner
@@ -93,7 +92,7 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
       }
     } else {
       println("Answer was corrent!!!!")
-      players(currentPlayer).purse += 1
+      players(currentPlayer).addGold(1)
       println(players(currentPlayer).name + " now has " + players(currentPlayer).purse + " Gold Coins.")
       val winner = didPlayerWin
       nextPlayer()
@@ -113,7 +112,7 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
     currentPlayer = (currentPlayer + 1) % players.size
   }
 
-  private def didPlayerWin: Boolean = !(players(currentPlayer).purse == GoldToWin)
+  private def didPlayerWin: Boolean = !players(currentPlayer).hasWon
 }
 
 object Game {
@@ -163,6 +162,13 @@ object Game {
   case class Player(name: String,
                     var place: Int,
                     var purse: Int,
-                    var inPenaltyBox: Boolean)
+                    var inPenaltyBox: Boolean) {
+    // adding methods reveals what is the intention and factorize some code
+    def move(roll: Int): Unit = place = (place + roll) % NumberOfCells
+
+    def addGold(amount: Int): Unit = purse += amount
+
+    def hasWon: Boolean = purse == GoldToWin
+  }
 
 }
