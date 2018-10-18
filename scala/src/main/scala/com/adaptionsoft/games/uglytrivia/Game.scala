@@ -9,9 +9,10 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
 
   private val playerNames = player1 +: player2 +: otherPlayers
   // removing places, purses and inPenaltyBox arrays allows for any number of players
-  private val players = mutable.ListBuffer[Player]()
+  private val players = playerNames.map(name => Player(name, 0, 0, inPenaltyBox = false))
   private val questions = Questions(Category.values)
   private var currentPlayerIndex = 0
+  private var currentPlayer = players(currentPlayerIndex)
   private var isGettingOutOfPenaltyBox: Boolean = false
 
   // will throw an exception if there is too much players
@@ -19,24 +20,14 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
   // depending on specification, it can be improved by allowing more players or by having different constructors for each number of players
   assert(playerNames.length <= MaxPlayerNumber, s"Game should have $MaxPlayerNumber players but has ${playerNames.length} (${playerNames.mkString(", ")})")
 
-  // add all players at the beginning
-  playerNames.foreach { name =>
-    add(name)
+  // print init messages
+  playerNames.zipWithIndex.foreach { case (name, i) =>
+    println(name + " was added")
+    println("They are player number " + (i + 1))
   }
-
-  private var currentPlayer = players(currentPlayerIndex)
 
   // this method is now useless as there is always two or more players
   def isPlayable: Boolean = true
-
-  // add is now private to force adding all players at the beginning and forbid adding players later
-  // depending on specification, you can leave it public to allow more players to join when the game has started
-  private def add(playerName: String): Boolean = {
-    players.append(Player(playerName, 0, 0, inPenaltyBox = false))
-    println(playerName + " was added")
-    println("They are player number " + players.size)
-    true
-  }
 
   def howManyPlayers: Int = players.size
 
