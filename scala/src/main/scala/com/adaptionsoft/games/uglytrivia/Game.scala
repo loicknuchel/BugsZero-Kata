@@ -34,47 +34,42 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
   // temporal coupling: create a single method to avoid errors with call order (roll then answer then roll then answer...)
   // prefer positive Booleans (return hasWon instead of notAWinner), it's easier to manipulate
   // merging all methods here will help refactoring code logic by removing method boundaries
+  // flatten if structure by reverting the condition
   def play(roll: Int, answeredCorrectly: Boolean): Boolean = {
     println(currentPlayer.name + " is the current player")
     println("They have rolled a " + roll)
-    if (currentPlayer.inPenaltyBox) {
-      if (roll % 2 != 0) {
-        isGettingOutOfPenaltyBox = true
-        println(currentPlayer.name + " is getting out of the penalty box")
-        movePlayerAndAskQuestion(roll)
-      } else {
-        println(currentPlayer.name + " is not getting out of the penalty box")
-        isGettingOutOfPenaltyBox = false
-      }
-    } else {
+    if (!currentPlayer.inPenaltyBox) {
       movePlayerAndAskQuestion(roll)
+    } else if (roll % 2 != 0) {
+      isGettingOutOfPenaltyBox = true
+      println(currentPlayer.name + " is getting out of the penalty box")
+      movePlayerAndAskQuestion(roll)
+    } else {
+      isGettingOutOfPenaltyBox = false
+      println(currentPlayer.name + " is not getting out of the penalty box")
     }
 
-    if (answeredCorrectly) {
-      if (currentPlayer.inPenaltyBox) {
-        if (isGettingOutOfPenaltyBox) {
-          println("Answer was correct!!!!")
-          nextPlayer()
-          currentPlayer.addGold(1)
-          println(currentPlayer.name + " now has " + currentPlayer.purse + " Gold Coins.")
-          val winner = currentPlayer.hasWon
-          winner
-        } else {
-          nextPlayer()
-          false
-        }
-      } else {
-        println("Answer was corrent!!!!")
-        currentPlayer.addGold(1)
-        println(currentPlayer.name + " now has " + currentPlayer.purse + " Gold Coins.")
-        val winner = currentPlayer.hasWon
-        nextPlayer()
-        winner
-      }
-    } else {
+    if (!answeredCorrectly) {
       println("Question was incorrectly answered")
       println(currentPlayer.name + " was sent to the penalty box")
       currentPlayer.inPenaltyBox = true
+      nextPlayer()
+      false
+    } else if (!currentPlayer.inPenaltyBox) {
+      println("Answer was corrent!!!!")
+      currentPlayer.addGold(1)
+      println(currentPlayer.name + " now has " + currentPlayer.purse + " Gold Coins.")
+      val winner = currentPlayer.hasWon
+      nextPlayer()
+      winner
+    } else if (isGettingOutOfPenaltyBox) {
+      println("Answer was correct!!!!")
+      nextPlayer()
+      currentPlayer.addGold(1)
+      println(currentPlayer.name + " now has " + currentPlayer.purse + " Gold Coins.")
+      val winner = currentPlayer.hasWon
+      winner
+    } else {
       nextPlayer()
       false
     }
