@@ -34,6 +34,8 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
   // prefer positive Booleans (return hasWon instead of notAWinner), it's easier to manipulate
   // merging all methods here will help refactoring code logic by removing method boundaries
   // flatten if structure by reverting the condition
+  // trying to improve similarity make clear that nextPlayer() method in condition isGettingOutOfPenaltyBox is called too soon
+  // having all the code in the same place, it highlights that inPenaltyBox is never set to false
   def play(roll: Int, answeredCorrectly: Boolean): Boolean = {
     println(currentPlayer.name + " is the current player")
     println("They have rolled a " + roll)
@@ -57,18 +59,19 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
       nextPlayer()
       false
     } else if (!currentPlayer.inPenaltyBox) {
-      println("Answer was corrent!!!!")
+      println("Answer was correct!!!!")
       currentPlayer.addGold(1)
       println(currentPlayer.name + " now has " + currentPlayer.purse + " Gold Coins.")
       val winner = currentPlayer.hasWon
       nextPlayer()
       winner
     } else if (isGettingOutOfPenaltyBox) {
+      currentPlayer.inPenaltyBox = false
       println("Answer was correct!!!!")
-      nextPlayer()
       currentPlayer.addGold(1)
       println(currentPlayer.name + " now has " + currentPlayer.purse + " Gold Coins.")
       val winner = currentPlayer.hasWon
+      nextPlayer()
       winner
     } else {
       nextPlayer()

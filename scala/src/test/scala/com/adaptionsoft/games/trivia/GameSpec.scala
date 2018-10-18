@@ -18,7 +18,7 @@ class GameSpec extends FunSpec with Matchers {
         (1 until 15).foreach(_ => GameRunner.playGame(randomizer))
       }
 
-      val expected = Source.fromFile("../resources/result-with-bugs.txt").mkString
+      val expected = Source.fromFile("../resources/result-without-bugs.txt").mkString
       val result = resultStream.toString
       result shouldBe expected
     }
