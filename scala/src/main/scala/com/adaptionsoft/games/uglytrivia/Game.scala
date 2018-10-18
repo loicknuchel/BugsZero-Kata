@@ -9,7 +9,7 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
 
   private val playerNames = player1 +: player2 +: otherPlayers
   // removing places, purses and inPenaltyBox arrays allows for any number of players
-  private val players = playerNames.map(name => Player(name, 0, 0, inPenaltyBox = false))
+  private val players = playerNames.map(name => Player(name))
   private val questions = Questions(Category.values)
   private var currentPlayerIndex = 0
   private var currentPlayer = players(currentPlayerIndex)
@@ -40,7 +40,7 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
     val normalPlay = !currentPlayer.inPenaltyBox || canExitPenaltyBox(roll)
 
     if (normalPlay) {
-      if(currentPlayer.inPenaltyBox) Messages.exitPenaltyBox(currentPlayer)
+      if (currentPlayer.inPenaltyBox) Messages.exitPenaltyBox(currentPlayer)
       currentPlayer.move(roll)
       val category = Category.from(currentPlayer.place)
       val question = questions.pick(category)
@@ -79,7 +79,7 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
 object Game {
   val MaxPlayerNumber = 6
   val NumberOfCells = 12
-  val GoldToWin = 6
+  val GoldToWin = Gold(6)
   val NumberOfQuestions = 50
 
   // add constraints on possible categories and improve types
@@ -97,7 +97,7 @@ object Game {
 
     val values: Seq[Category] = Seq(Pop, Science, Sports, Rock)
 
-    def from(place: Int): Category = Category.values(place % 4)
+    def from(place: Place): Category = Category.values(place.value % 4)
   }
 
   // manage questions for each category
@@ -119,17 +119,34 @@ object Game {
     }
   }
 
+  // Place and Gold classes improve code types and package some specific behaviour
+  case class Place(value: Int) extends AnyVal {
+    def +(roll: Int): Place = Place((value + roll) % NumberOfCells)
+
+    override def toString: String = value.toString
+  }
+
+  case class Gold(value: Int) extends AnyVal {
+    def +(amount: Int): Gold = Gold(value + amount)
+
+    override def toString: String = value.toString
+  }
+
   // group player info inside a class instead of multiple arrays
   case class Player(name: String,
-                    var place: Int,
-                    var purse: Int,
+                    var place: Place,
+                    var purse: Gold,
                     var inPenaltyBox: Boolean) {
     // adding methods reveals what is the intention and factorize some code
-    def move(roll: Int): Unit = place = (place + roll) % NumberOfCells
+    def move(roll: Int): Unit = place += roll
 
     def addGold(amount: Int): Unit = purse += amount
 
     def hasWon: Boolean = purse == GoldToWin
+  }
+
+  object Player {
+    def apply(name: String): Player = new Player(name, Place(0), Gold(0), false)
   }
 
   object Messages {
@@ -169,4 +186,5 @@ object Game {
       println(s"${player.name} is not getting out of the penalty box")
     }
   }
+
 }
