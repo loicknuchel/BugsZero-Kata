@@ -13,7 +13,6 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
   private val questions = Questions(Category.values)
   private var currentPlayerIndex = 0
   private var currentPlayer = players(currentPlayerIndex)
-  private var isGettingOutOfPenaltyBox: Boolean = false
 
   // will throw an exception if there is too much players
   // it's better than having errors from elsewhere in the program
@@ -38,6 +37,8 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
   def play(roll: Int, answeredCorrectly: Boolean): Boolean = {
     println(currentPlayer.name + " is the current player")
     println("They have rolled a " + roll)
+    var isGettingOutOfPenaltyBox: Boolean = false
+
     if (!currentPlayer.inPenaltyBox) {
       movePlayerAndAskQuestion(roll)
     } else if (canExitPenaltyBox(roll)) {
