@@ -40,7 +40,7 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
     println("They have rolled a " + roll)
     if (!currentPlayer.inPenaltyBox) {
       movePlayerAndAskQuestion(roll)
-    } else if (roll % 2 != 0) {
+    } else if (canExitPenaltyBox(roll)) {
       isGettingOutOfPenaltyBox = true
       println(currentPlayer.name + " is getting out of the penalty box")
       movePlayerAndAskQuestion(roll)
@@ -74,6 +74,9 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
       false
     }
   }
+
+  // this method will add meaning to the action, it's clearer in the if condition
+  private def canExitPenaltyBox(roll: Int): Boolean = roll % 2 == 1
 
   private def movePlayerAndAskQuestion(roll: Int): Unit = {
     currentPlayer.move(roll)
