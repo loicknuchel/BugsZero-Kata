@@ -56,27 +56,20 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
       println("Question was incorrectly answered")
       println(currentPlayer.name + " was sent to the penalty box")
       currentPlayer.inPenaltyBox = true
-      nextPlayer()
-      false
     } else if (!currentPlayer.inPenaltyBox) {
       println("Answer was correct!!!!")
       currentPlayer.addGold(1)
       println(currentPlayer.name + " now has " + currentPlayer.purse + " Gold Coins.")
-      val winner = currentPlayer.hasWon
-      nextPlayer()
-      winner
     } else if (isGettingOutOfPenaltyBox) {
       currentPlayer.inPenaltyBox = false
       println("Answer was correct!!!!")
       currentPlayer.addGold(1)
       println(currentPlayer.name + " now has " + currentPlayer.purse + " Gold Coins.")
-      val winner = currentPlayer.hasWon
-      nextPlayer()
-      winner
-    } else {
-      nextPlayer()
-      false
     }
+
+    val winner = currentPlayer.hasWon
+    nextPlayer()
+    winner
   }
 
   // this method will add meaning to the action, it's clearer in the if condition
