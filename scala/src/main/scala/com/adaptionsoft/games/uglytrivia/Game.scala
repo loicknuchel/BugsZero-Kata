@@ -11,7 +11,7 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
   // removing places, purses and inPenaltyBox arrays allows for any number of players
   private val players = mutable.ListBuffer[Player]()
   private val questions = Questions(Category.values)
-  private var currentPlayer = 0
+  private var currentPlayerIndex = 0
   private var isGettingOutOfPenaltyBox: Boolean = false
 
   // will throw an exception if there is too much players
@@ -23,6 +23,8 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
   playerNames.foreach { name =>
     add(name)
   }
+
+  private var currentPlayer = players(currentPlayerIndex)
 
   // this method is now useless as there is always two or more players
   def isPlayable: Boolean = true
@@ -47,15 +49,15 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
   }
 
   private def roll(roll: Int): Unit = {
-    println(players(currentPlayer).name + " is the current player")
+    println(currentPlayer.name + " is the current player")
     println("They have rolled a " + roll)
-    if (players(currentPlayer).inPenaltyBox) {
+    if (currentPlayer.inPenaltyBox) {
       if (roll % 2 != 0) {
         isGettingOutOfPenaltyBox = true
-        println(players(currentPlayer).name + " is getting out of the penalty box")
+        println(currentPlayer.name + " is getting out of the penalty box")
         movePlayerAndAskQuestion(roll)
       } else {
-        println(players(currentPlayer).name + " is not getting out of the penalty box")
+        println(currentPlayer.name + " is not getting out of the penalty box")
         isGettingOutOfPenaltyBox = false
       }
     } else
@@ -63,8 +65,8 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
   }
 
   private def movePlayerAndAskQuestion(roll: Int): Unit = {
-    players(currentPlayer).move(roll)
-    println(players(currentPlayer).name + "'s new location is " + players(currentPlayer).place)
+    currentPlayer.move(roll)
+    println(currentPlayer.name + "'s new location is " + currentPlayer.place)
     println("The category is " + currentCategory)
     askQuestion()
   }
@@ -74,16 +76,16 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
   }
 
   private def currentCategory: Category = {
-    Category.from(players(currentPlayer).place)
+    Category.from(currentPlayer.place)
   }
 
   private def wasCorrectlyAnswered: Boolean =
-    if (players(currentPlayer).inPenaltyBox) {
+    if (currentPlayer.inPenaltyBox) {
       if (isGettingOutOfPenaltyBox) {
         println("Answer was correct!!!!")
         nextPlayer()
-        players(currentPlayer).addGold(1)
-        println(players(currentPlayer).name + " now has " + players(currentPlayer).purse + " Gold Coins.")
+        currentPlayer.addGold(1)
+        println(currentPlayer.name + " now has " + currentPlayer.purse + " Gold Coins.")
         val winner = didPlayerWin
         winner
       } else {
@@ -92,8 +94,8 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
       }
     } else {
       println("Answer was corrent!!!!")
-      players(currentPlayer).addGold(1)
-      println(players(currentPlayer).name + " now has " + players(currentPlayer).purse + " Gold Coins.")
+      currentPlayer.addGold(1)
+      println(currentPlayer.name + " now has " + currentPlayer.purse + " Gold Coins.")
       val winner = didPlayerWin
       nextPlayer()
       winner
@@ -101,18 +103,19 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
 
   private def wrongAnswer: Boolean = {
     println("Question was incorrectly answered")
-    println(players(currentPlayer).name + " was sent to the penalty box")
-    players(currentPlayer).inPenaltyBox = true
+    println(currentPlayer.name + " was sent to the penalty box")
+    currentPlayer.inPenaltyBox = true
     nextPlayer()
     true
   }
 
   // remove code duplication and add semantic to the action
   private def nextPlayer(): Unit = {
-    currentPlayer = (currentPlayer + 1) % players.size
+    currentPlayerIndex = (currentPlayerIndex + 1) % players.size
+    currentPlayer = players(currentPlayerIndex)
   }
 
-  private def didPlayerWin: Boolean = !players(currentPlayer).hasWon
+  private def didPlayerWin: Boolean = !currentPlayer.hasWon
 }
 
 object Game {
