@@ -36,19 +36,17 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
   // flatten if structure by reverting the condition
   // trying to improve similarity make clear that nextPlayer() method in condition isGettingOutOfPenaltyBox is called too soon
   // having all the code in the same place, it highlights that inPenaltyBox is never set to false
+  // actions when not in penalty box and when exit penalty box is very similar so merge it
   def play(roll: Int, answeredCorrectly: Boolean): Boolean = {
     println(currentPlayer.name + " is the current player")
     println("They have rolled a " + roll)
-    var isGettingOutOfPenaltyBox: Boolean = false
 
-    if (!currentPlayer.inPenaltyBox) {
-      movePlayerAndAskQuestion(roll)
-    } else if (canExitPenaltyBox(roll)) {
-      isGettingOutOfPenaltyBox = true
-      println(currentPlayer.name + " is getting out of the penalty box")
+    val normalPlay = !currentPlayer.inPenaltyBox || canExitPenaltyBox(roll)
+
+    if (normalPlay) {
+      if(currentPlayer.inPenaltyBox) println(currentPlayer.name + " is getting out of the penalty box")
       movePlayerAndAskQuestion(roll)
     } else {
-      isGettingOutOfPenaltyBox = false
       println(currentPlayer.name + " is not getting out of the penalty box")
     }
 
@@ -56,13 +54,9 @@ class Game(player1: String, player2: String, otherPlayers: String*) {
       println("Question was incorrectly answered")
       println(currentPlayer.name + " was sent to the penalty box")
       currentPlayer.inPenaltyBox = true
-    } else if (!currentPlayer.inPenaltyBox) {
+    } else if (normalPlay) {
       println("Answer was correct!!!!")
-      currentPlayer.addGold(1)
-      println(currentPlayer.name + " now has " + currentPlayer.purse + " Gold Coins.")
-    } else if (isGettingOutOfPenaltyBox) {
       currentPlayer.inPenaltyBox = false
-      println("Answer was correct!!!!")
       currentPlayer.addGold(1)
       println(currentPlayer.name + " now has " + currentPlayer.purse + " Gold Coins.")
     }
